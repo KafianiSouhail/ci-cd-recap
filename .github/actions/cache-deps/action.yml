@@ -1,0 +1,28 @@
+name: Load dependencies and Install if needed
+description: Caches dependencies and installs them if the cache is not hit
+inputs:
+  caching:
+    description: "Enable or disable caching of dependencies"
+    required: false
+    default: "true"
+outputs:
+  is-dependencies-installed:
+    description: "Indicates if dependencies were installed"
+    value: ${{ steps.install-deps.outputs.isDependenciesInstalled }}
+runs:
+  using: "composite"
+  steps:
+    - name: Cache dependencies
+      id: cache-deps
+      if: inputs.caching == 'true'
+      uses: actions/cache@v4
+      with:
+        key: project-dependencies-${{ hashFiles('**/package-lock.json') }}
+        path: node_modules
+    - name: Install dependencies
+      id: install-deps
+      if: steps.cache-deps.outputs.cache-hit != 'true' || inputs.caching == 'false'
+      run: |
+        npm ci
+        echo "isDependenciesInstalled=success" >> $GITHUB_OUTPUT
+      shell: bash

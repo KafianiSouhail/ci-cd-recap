@@ -1,0 +1,30 @@
+name: Build & Lint
+on:
+    workflow_call:
+        inputs:
+            artifact_name:
+                required: false
+                type: string
+                description: "Name of the artifact to be used in the workflow"
+                default: "my-artifact"
+        outputs:
+            build_status:
+                description: "The status of the build job"
+                value: ${{ jobs.build.outputs.build_status}}
+jobs:
+    build:
+        outputs:
+            build_status: ${{ steps.build-step.outcome }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print deploy
+              id: build-step
+              run: |
+                  echo "deploying ${{ inputs.artifact_name }} ..."
+                  echo "outcome=sucess" >> $GITHUB_OUTPUT
+    lint:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: Print lint
+              run: echo "linting ${{ inputs.artifact_name }} ..."

@@ -1,0 +1,43 @@
+name: Deploy website
+on:
+  push:
+    branches:
+      - master
+env:
+  NAME: Souhail
+  DB_HOST: HOST_GlOBAL
+jobs:
+  test:
+    env:
+      DB_HOST: HOST_JOB
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load dependencies and Install if needed
+        id: load-deps
+        uses: ./.github/actions/cache-deps
+      - name: Log dependencies status
+        run: |
+          echo "Dependencies installed: ${{ steps.load-deps.outputs.is-dependencies-installed || 'not installed' }}"
+      - name: Run tests
+        run: npm run test
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Load dependencies and Install if needed
+        id: load-deps
+        uses: ./.github/actions/cache-deps
+        with:
+          caching: "false"
+      - name: Log dependencies status
+        run: |
+          echo "Dependencies installed: ${{ steps.load-deps.outputs.is-dependencies-installed}}"
+      - name: Build project
+        run: npm run build
+      - name: Deploy to server
+        run: echo "Deploying to server..."
